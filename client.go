@@ -120,20 +120,25 @@ func (l *lmClient) ListLogs(prefix string) error {
 func (l *lmClient) LogFlood(prefix string) {
 	ctx := context.Background()
 
-	go func() {
-		for {
-			if _, err := l.client.Log(ctx, &pb.LogRequest{
-				Prefix: prefix,
-				Data:   randomString(),
-			}); err != nil {
-				log.Fatalf("%v.ListLogs(_) = _, %v: ", l.client, err)
-				return
-			}
-		}
-	}()
+	for i := 0; i < 8; i++ {
+		go floodLogs(l.client, ctx, prefix)
+	}
+
 	time.Sleep(10 * time.Minute)
 	log.Println("DONE")
 	os.Exit(0)
+}
+
+func floodLogs(client pb.LoggerClient, ctx context.Context, prefix string) {
+	for {
+		if _, err := client.Log(ctx, &pb.LogRequest{
+			Prefix: prefix,
+			Data:   randomString(),
+		}); err != nil {
+			log.Fatalf("%v.ListLogs(_) = _, %v: ", client, err)
+			return
+		}
+	}
 }
 
 func randomString() string {
