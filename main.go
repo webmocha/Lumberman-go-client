@@ -32,13 +32,15 @@ List Log by prefixes:
 List Log keys by prefix:
 		lmc list-keys <Prefix>
 
-Flood logs for prefix:
-		lmc log-flood <Prefix>
+Put Logs (n) unary rpc calls:
+		lmc put-logs-unary <Prefix>
+  default n: 1000
+		lmc -n 2500 put-logs-unary <Prefix>
 
-Flood logs for prefix as stream:
-		lmc put-log-stream <Prefix>
-		default n: 1000
-		lmc -n 2500 put-log-stream <Prefix>
+Put Logs (n) streamed rpc calls:
+		lmc put-logs-stream <Prefix>
+  default n: 1000
+		lmc -n 2500 put-logs-stream <Prefix>
 `
 
 var (
@@ -81,8 +83,8 @@ func main() {
 			lmc.TailLogStream(flag.Args()[1])
 		case "list-keys":
 			lmc.ListKeys(flag.Args()[1])
-		case "log-flood":
-			lmc.LogFlood(flag.Args()[1])
+		case "put-logs-unary":
+			lmc.PutLogsUnary(flag.Args()[1], *putStreamN)
 		case "put-logs-stream":
 			lmc.PutLogStream(flag.Args()[1], *putStreamN)
 		default:

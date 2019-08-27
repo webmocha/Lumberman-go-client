@@ -41,14 +41,38 @@ func (l *lmClient) PutLogStream(prefix string, n int) {
 		return
 	}
 
-	for i := 0; i < n; i++ {
-		if err := stream.Send(&pb.PutLogRequest{
-			Prefix: prefix,
-			Data:   randomString(),
-		}); err != nil {
-			log.Fatal(handleCallError("PutLogStream.Send", err))
+	go func() {
+		for i := 0; i < n; i++ {
+			if err := stream.Send(&pb.PutLogRequest{
+				Prefix: prefix,
+				Data:   randomString(),
+			}); err != nil {
+				log.Fatal(handleCallError("PutLogStream.Send", err))
+				break
+			}
+		}
+		if err := stream.CloseSend(); err != nil {
+			log.Fatal(handleCallError("PutLogStream.CloseSend", err))
+		}
+	}()
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			return
+		default:
+		}
+
+		logReply, recvErr := stream.Recv()
+		if recvErr == io.EOF {
 			return
 		}
+
+		if recvErr != nil {
+			log.Fatal(handleCallError("PutLogStream.Recv", recvErr))
+		}
+
+		log.Printf("%+v\n", logReply)
 	}
 }
 
@@ -149,29 +173,40 @@ func (l *lmClient) ListKeys(prefix string) {
 	}
 }
 
-func (l *lmClient) LogFlood(prefix string) {
+func (l *lmClient) PutLogsUnary(prefix string, n int) {
 	ctx := context.Background()
 
-	for i := 0; i < 8; i++ {
-		go floodLogs(i, l.client, ctx, prefix)
+	funcs := 8
+	funcsDone := 0
+	doneC := make(chan bool)
+
+	for i := 0; i < funcs; i++ {
+		go floodLogsUnary(i, l.client, ctx, doneC, prefix, n/8)
 	}
 
-	time.Sleep(10 * time.Minute)
-	log.Println("DONE")
-	os.Exit(0)
+	for {
+		select {
+		case <-doneC:
+			funcsDone = funcsDone + 1
+			if funcsDone == funcs {
+				os.Exit(0)
+			}
+		}
+	}
 }
 
-func floodLogs(funcId int, client pb.LoggerClient, ctx context.Context, prefix string) {
-	for {
+func floodLogsUnary(funcId int, client pb.LoggerClient, ctx context.Context, done chan bool, prefix string, n int) {
+	for i := 0; i < n; i++ {
 		if res, err := client.PutLog(ctx, &pb.PutLogRequest{
 			Prefix: prefix,
 			Data:   randomString(),
 		}); err != nil {
 			handleCallError("PutLog", err)
 		} else {
-			log.Printf("funcId:%d %+v\n", res)
+			log.Printf("funcId:%d %+v\n", funcId, res)
 		}
 	}
+	done <- true
 }
 
 func randomString() string {

@@ -168,12 +168,20 @@ output:
 2019/08/26 16:26:15 keys:"user-click|2019-08-26T06:15:37.24192515Z" keys:"user-click|2019-08-26T06:19:00.062988065Z" keys:"user-click|2019-08-26T06:19:02.662282619Z"
 ```
 
-### Flood logs for prefix
+### Put n logs by calling n unary rpc calls
 
-floods log for 10 minutes using separate unary rpc calls
+Default `n: 1000`
 
 ```sh
-lmc log-flood <Prefix>
+lmc put-logs-unary <Prefix>
+lmc -n <CallsCount> put-logs-unary <Prefix>
+```
+
+example:
+
+```sh
+lmc put-logs-unary 'test-1000'
+lmc -n 2500 put-logs-unary 'test-2500'
 ```
 
 ### Put n logs using single bidirectional rpc stream
@@ -182,10 +190,12 @@ Default `n: 1000`
 
 ```sh
 lmc put-logs-stream <Prefix> (n:1000)
+lmc -n <CallsCount> put-logs-stream <Prefix> (n:1000)
 ```
 
 example:
 
 ```sh
-lmc -n 2500 put-logs-stream 'test-stream'
+lmc put-logs-stream 'test-1000'
+lmc -n 2500 put-logs-stream 'test-2500'
 ```
