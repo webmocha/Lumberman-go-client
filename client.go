@@ -58,6 +58,30 @@ func (l *lmClient) GetLogs(prefix string) {
 	}
 }
 
+func (l *lmClient) GetLogsStream(prefix string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	stream, err := l.client.GetLogsStream(ctx, &pb.GetLogsRequest{
+		Prefix: prefix,
+	})
+	if err != nil {
+		log.Fatal(handleCallError("GetLogsStream", err))
+		return
+	}
+	for {
+		logReply, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(handleCallError("GetLogsStream.Recv", err))
+			return
+		}
+		log.Printf("%+v\n", logReply)
+	}
+}
+
 func (l *lmClient) StreamLogs(prefix string) {
 	ctx := context.Background()
 

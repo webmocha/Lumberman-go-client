@@ -74,7 +74,7 @@ lmc get-log 'user-click|2019-08-26T06:19:02.662282619Z'
 output:
 
 ```
-2019/08/26 16:19:27 key:"user-click|2019-08-26T06:19:02.662282619Z" timestamp:<seconds:1566857936 nanos:984205500 > data:"{ \"href\": \"/login\" }"
+2019/08/26 16:19:27 key:"user-click|2019-08-26T06:19:02.662282619Z" timestamp:<... > data:"{ \"href\": \"/login\" }"
 ```
 
 ### Get all Logs by prefix
@@ -92,10 +92,32 @@ lmc get-logs user-search
 output:
 
 ```
-2019/08/26 16:20:49 logs:<key:"user-search|2019-08-26T01:30:42.620978567Z" timestamp:<seconds:1566857564 nanos:545176400 > data:"cat" > logs:<key:"user-search|2019-08-26T01:31:38.844208133Z" timestamp:<seconds:1566857578 nanos:875623700 > data:"doggo" > logs:<key:"user-search|2019-08-26T01:31:42.385940486Z" timestamp:<seconds:1566857936 nanos:984205500 > data:"birb" >
+2019/08/26 16:20:49 logs:<key:"user-search|2019-08-26T01:30:42.620978567Z" timestamp:<... > data:"cat" > logs:<key:"user-search|2019-08-26T01:31:38.844208133Z" timestamp:<... > data:"doggo" > logs:<key:"user-search|2019-08-26T01:31:42.385940486Z" timestamp:<... > data:"birb" >
+```
+
+### Get all Logs as stream by prefix
+
+```sh
+lmc get-logs-stream <Prefix>
+```
+
+example:
+
+```sh
+lmc get-logs-stream user-search
+```
+
+output:
+
+```
+2019/08/26 16:20:49 logs:<key:"user-search|2019-08-26T01:30:42.620978567Z" timestamp:<... > data:"cat" >
+2019/08/26 16:20:49 logs:<key:"user-search|2019-08-26T01:31:38.844208133Z" timestamp:<... > data:"doggo" >
+l2019/08/26 16:20:49 ogs:<key:"user-search|2019-08-26T01:31:42.385940486Z" timestamp:<... > data:"birb" >
 ```
 
 ### Stream Logs by prefix
+
+_stream stays open, tailing new log events_
 
 ```sh
 lmc stream-logs <Prefix>
@@ -110,8 +132,8 @@ lmc stream-logs user-click
 output:
 
 ```
-2019/08/26 16:23:08 key:"user-click|2019-08-26T06:19:00.062988065Z" timestamp:<seconds:1566861788 nanos:504804700 > data:"{ \"href\": \"/login\" }"
-2019/08/26 16:23:10 key:"user-click|2019-08-26T06:19:02.662282619Z" timestamp:<seconds:1566861790 nanos:495896600 > data:"{ \"href\": \"/forgot-password\" }"
+2019/08/26 16:23:08 key:"user-click|2019-08-26T06:19:00.062988065Z" timestamp:<... > data:"{ \"href\": \"/login\" }"
+2019/08/26 16:23:10 key:"user-click|2019-08-26T06:19:02.662282619Z" timestamp:<... > data:"{ \"href\": \"/forgot-password\" }"
 ```
 
 ### List Log prefixes

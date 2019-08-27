@@ -20,6 +20,9 @@ Get Log by key:
 Get all Logs by prefix:
 		lmc get-logs <Prefix>
 
+Get all Logs as stream by prefix:
+		lmc get-logs-stream <Prefix>
+
 Stream Logs by prefix:
 		lmc stream-logs <Prefix>
 
@@ -66,6 +69,8 @@ func main() {
 			lmc.GetLog(flag.Args()[1])
 		case "get-logs":
 			lmc.GetLogs(flag.Args()[1])
+		case "get-logs-stream":
+			lmc.GetLogsStream(flag.Args()[1])
 		case "stream-logs":
 			lmc.StreamLogs(flag.Args()[1])
 		case "list-logs":
