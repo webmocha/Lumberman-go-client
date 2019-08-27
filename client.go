@@ -10,59 +10,52 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	pb "github.com/webmocha/lumberman/pb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type lmClient struct {
 	client pb.LoggerClient
 }
 
-func (l *lmClient) Log(prefix, data string) error {
+func (l *lmClient) Log(prefix, data string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	logReply, err := l.client.Log(ctx, &pb.LogRequest{
+	if logReply, err := l.client.Log(ctx, &pb.LogRequest{
 		Prefix: prefix,
 		Data:   data,
-	})
-	if err != nil {
-		log.Fatalf("%v.Log(_) = _, %v: ", l.client, err)
-		return err
+	}); err != nil {
+		log.Fatal(handleCallError("Log", err))
+	} else {
+		log.Printf("%+v\n", logReply)
 	}
-
-	log.Printf("%+v\n", logReply)
-	return nil
 }
 
-func (l *lmClient) GetLog(key string) error {
+func (l *lmClient) GetLog(key string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	logReply, err := l.client.GetLog(ctx, &pb.GetLogRequest{
+	if logReply, err := l.client.GetLog(ctx, &pb.GetLogRequest{
 		Key: key,
-	})
-	if err != nil {
-		log.Fatalf("%v.GetLog(_) = _, %v: ", l.client, err)
-		return err
+	}); err != nil {
+		log.Fatal(handleCallError("GetLog", err))
+	} else {
+		log.Printf("%+v\n", logReply)
 	}
-
-	log.Printf("%+v\n", logReply)
-	return nil
 }
 
-func (l *lmClient) GetLogs(prefix string) error {
+func (l *lmClient) GetLogs(prefix string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	logsReply, err := l.client.GetLogs(ctx, &pb.GetLogsRequest{
+	if logsReply, err := l.client.GetLogs(ctx, &pb.GetLogsRequest{
 		Prefix: prefix,
-	})
-	if err != nil {
-		log.Fatalf("%v.GetLogs(_) = _, %v: ", l.client, err)
-		return err
+	}); err != nil {
+		log.Fatal(handleCallError("GetLogs", err))
+	} else {
+		log.Printf("%+v\n", logsReply)
 	}
-
-	log.Printf("%+v\n", logsReply)
-	return nil
 }
 
 func (l *lmClient) StreamLogs(prefix string) {
@@ -72,7 +65,7 @@ func (l *lmClient) StreamLogs(prefix string) {
 		Prefix: prefix,
 	})
 	if err != nil {
-		log.Fatalf("%v.StreamLogs(_) = _, %v: ", l.client, err)
+		log.Fatal(handleCallError("StreamLogs", err))
 		return
 	}
 	for {
@@ -81,47 +74,42 @@ func (l *lmClient) StreamLogs(prefix string) {
 			break
 		}
 		if err != nil {
-			log.Fatalf("%v.StreamLogs(_) = _, %v", l.client, err)
+			log.Fatal(handleCallError("StreamLogs.Recv", err))
+			return
 		}
 		log.Printf("%+v\n", logReply)
 	}
 }
 
-func (l *lmClient) ListPrefixes() error {
+func (l *lmClient) ListPrefixes() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	prefixesReply, err := l.client.ListPrefixes(ctx, new(empty.Empty))
-	if err != nil {
-		log.Fatalf("%v.ListPrefixes(_) = _, %v: ", l.client, err)
-		return err
+	if prefixesReply, err := l.client.ListPrefixes(ctx, new(empty.Empty)); err != nil {
+		log.Fatal(handleCallError("ListPrefixes", err))
+	} else {
+		log.Printf("%+v\n", prefixesReply)
 	}
-
-	log.Printf("%+v\n", prefixesReply)
-	return nil
 }
 
-func (l *lmClient) ListLogs(prefix string) error {
+func (l *lmClient) ListLogs(prefix string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	logsReply, err := l.client.ListLogs(ctx, &pb.ListLogsRequest{
+	if logsReply, err := l.client.ListLogs(ctx, &pb.ListLogsRequest{
 		Prefix: prefix,
-	})
-	if err != nil {
-		log.Fatalf("%v.ListLogs(_) = _, %v: ", l.client, err)
-		return err
+	}); err != nil {
+		log.Fatal(handleCallError("ListLogs", err))
+	} else {
+		log.Printf("%+v\n", logsReply)
 	}
-
-	log.Printf("%+v\n", logsReply)
-	return nil
 }
 
 func (l *lmClient) LogFlood(prefix string) {
 	ctx := context.Background()
 
 	for i := 0; i < 8; i++ {
-		go floodLogs(l.client, ctx, prefix)
+		go floodLogs(i, l.client, ctx, prefix)
 	}
 
 	time.Sleep(10 * time.Minute)
@@ -129,14 +117,15 @@ func (l *lmClient) LogFlood(prefix string) {
 	os.Exit(0)
 }
 
-func floodLogs(client pb.LoggerClient, ctx context.Context, prefix string) {
+func floodLogs(funcId int, client pb.LoggerClient, ctx context.Context, prefix string) {
 	for {
-		if _, err := client.Log(ctx, &pb.LogRequest{
+		if res, err := client.Log(ctx, &pb.LogRequest{
 			Prefix: prefix,
 			Data:   randomString(),
 		}); err != nil {
-			log.Fatalf("%v.ListLogs(_) = _, %v: ", client, err)
-			return
+			handleCallError("Log", err)
+		} else {
+			log.Printf("funcId:%d %+v\n", res)
 		}
 	}
 }
@@ -147,4 +136,12 @@ func randomString() string {
 		bytes[i] = byte(97 + rand.Intn(122-97))
 	}
 	return string(bytes)
+}
+
+func handleCallError(rpcFunc string, err error) error {
+	if s, ok := status.FromError(err); !ok {
+		return status.Errorf(codes.Internal, "client.%s <- server Unknown Internal Error('%s')", rpcFunc, s.Message())
+	} else {
+		return status.Errorf(s.Code(), "client.%s<-server.Error('%s')", rpcFunc, s.Message())
+	}
 }
