@@ -1,6 +1,12 @@
-# Lumberman-go-client
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/132562/63731122-1730de80-c823-11e9-833f-3e4c91670a46.png" alt="Lumberman go client" />
+</p>
 
-Lumberman client reference implementation for go
+<h1 align="center">Lumberman go client</h1>
+
+<p align="center">
+  <strong>Lumberman client reference implementation for go</strong>
+</p>
 
 ## Requirements
 
