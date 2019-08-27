@@ -42,22 +42,24 @@ lmc -server_addr=172.17.0.14:5000 list-prefixes
 ### Write to Log
 
 ```sh
-lmc <Prefix> <Log Object>
+lmc put-log <Prefix> <Log Object>
 ```
 
 examples:
 
 ```sh
-lmc user-search 'cat'
+lmc put-log user-search 'cat'
 ```
 
 ```sh
-lmc user-click '{ "href": "/login" }'
+lmc put-log user-click '{ "href": "/login" }'
 ```
 
 ```sh
-lmc player-move '{ "x": 20, "y": -42, "z": 1 }'
+lmc put-log player-move '{ "x": 20, "y": -42, "z": 1 }'
 ```
+
+returns: `key`
 
 ### Get Log by key
 
@@ -115,18 +117,18 @@ output:
 l2019/08/26 16:20:49 ogs:<key:"user-search|2019-08-26T01:31:42.385940486Z" timestamp:<... > data:"birb" >
 ```
 
-### Stream Logs by prefix
+### Tail Logs as stream by prefix
 
 _stream stays open, tailing new log events_
 
 ```sh
-lmc stream-logs <Prefix>
+lmc tail-logs-stream <Prefix>
 ```
 
 example:
 
 ```sh
-lmc stream-logs user-click
+lmc tail-logs-stream user-click
 ```
 
 output:
@@ -151,13 +153,13 @@ example output:
 ### List Log keys by prefix
 
 ```sh
-lmc list-logs <Prefix>
+lmc list-keys <Prefix>
 ```
 
 example:
 
 ```sh
-lmc list-logs user-click
+lmc list-keys user-click
 ```
 
 output:
@@ -168,8 +170,22 @@ output:
 
 ### Flood logs for prefix
 
-floods log for 10 minutes
+floods log for 10 minutes using separate unary rpc calls
 
 ```sh
 lmc log-flood <Prefix>
+```
+
+### Put n logs using single bidirectional rpc stream
+
+Default `n: 1000`
+
+```sh
+lmc put-logs-stream <Prefix> (n:1000)
+```
+
+example:
+
+```sh
+lmc -n 2500 put-logs-stream 'test-stream'
 ```

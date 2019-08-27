@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/rogpeppe/go-internal v1.3.1 // indirect
-	github.com/webmocha/lumberman v0.0.0-20190827160637-f73495bea2ff
+	github.com/webmocha/lumberman v0.0.0-20190827192434-f059d4115fc9
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586 // indirect
 	golang.org/x/image v0.0.0-20190823064033-3a9bac650e44 // indirect
 	golang.org/x/mobile v0.0.0-20190826170111-cafc553e1ac5 // indirect

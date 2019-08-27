@@ -18,17 +18,37 @@ type lmClient struct {
 	client pb.LoggerClient
 }
 
-func (l *lmClient) Log(prefix, data string) {
+func (l *lmClient) PutLog(prefix, data string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if logReply, err := l.client.Log(ctx, &pb.LogRequest{
+	if logReply, err := l.client.PutLog(ctx, &pb.PutLogRequest{
 		Prefix: prefix,
 		Data:   data,
 	}); err != nil {
-		log.Fatal(handleCallError("Log", err))
+		log.Fatal(handleCallError("PutLog", err))
 	} else {
 		log.Printf("%+v\n", logReply)
+	}
+}
+
+func (l *lmClient) PutLogStream(prefix string, n int) {
+	ctx := context.Background()
+
+	stream, err := l.client.PutLogStream(ctx)
+	if err != nil {
+		log.Fatal(handleCallError("PutLogStream", err))
+		return
+	}
+
+	for i := 0; i < n; i++ {
+		if err := stream.Send(&pb.PutLogRequest{
+			Prefix: prefix,
+			Data:   randomString(),
+		}); err != nil {
+			log.Fatal(handleCallError("PutLogStream.Send", err))
+			return
+		}
 	}
 }
 
@@ -36,7 +56,7 @@ func (l *lmClient) GetLog(key string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if logReply, err := l.client.GetLog(ctx, &pb.GetLogRequest{
+	if logReply, err := l.client.GetLog(ctx, &pb.KeyMessage{
 		Key: key,
 	}); err != nil {
 		log.Fatal(handleCallError("GetLog", err))
@@ -49,7 +69,7 @@ func (l *lmClient) GetLogs(prefix string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if logsReply, err := l.client.GetLogs(ctx, &pb.GetLogsRequest{
+	if logsReply, err := l.client.GetLogs(ctx, &pb.PrefixRequest{
 		Prefix: prefix,
 	}); err != nil {
 		log.Fatal(handleCallError("GetLogs", err))
@@ -62,7 +82,7 @@ func (l *lmClient) GetLogsStream(prefix string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	stream, err := l.client.GetLogsStream(ctx, &pb.GetLogsRequest{
+	stream, err := l.client.GetLogsStream(ctx, &pb.PrefixRequest{
 		Prefix: prefix,
 	})
 	if err != nil {
@@ -82,14 +102,14 @@ func (l *lmClient) GetLogsStream(prefix string) {
 	}
 }
 
-func (l *lmClient) StreamLogs(prefix string) {
+func (l *lmClient) TailLogStream(prefix string) {
 	ctx := context.Background()
 
-	stream, err := l.client.StreamLogs(ctx, &pb.GetLogsRequest{
+	stream, err := l.client.TailLogStream(ctx, &pb.PrefixRequest{
 		Prefix: prefix,
 	})
 	if err != nil {
-		log.Fatal(handleCallError("StreamLogs", err))
+		log.Fatal(handleCallError("TailLogStream", err))
 		return
 	}
 	for {
@@ -98,7 +118,7 @@ func (l *lmClient) StreamLogs(prefix string) {
 			break
 		}
 		if err != nil {
-			log.Fatal(handleCallError("StreamLogs.Recv", err))
+			log.Fatal(handleCallError("TailLogStream.Recv", err))
 			return
 		}
 		log.Printf("%+v\n", logReply)
@@ -116,14 +136,14 @@ func (l *lmClient) ListPrefixes() {
 	}
 }
 
-func (l *lmClient) ListLogs(prefix string) {
+func (l *lmClient) ListKeys(prefix string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if logsReply, err := l.client.ListLogs(ctx, &pb.ListLogsRequest{
+	if logsReply, err := l.client.ListKeys(ctx, &pb.PrefixRequest{
 		Prefix: prefix,
 	}); err != nil {
-		log.Fatal(handleCallError("ListLogs", err))
+		log.Fatal(handleCallError("ListKeys", err))
 	} else {
 		log.Printf("%+v\n", logsReply)
 	}
@@ -143,11 +163,11 @@ func (l *lmClient) LogFlood(prefix string) {
 
 func floodLogs(funcId int, client pb.LoggerClient, ctx context.Context, prefix string) {
 	for {
-		if res, err := client.Log(ctx, &pb.LogRequest{
+		if res, err := client.PutLog(ctx, &pb.PutLogRequest{
 			Prefix: prefix,
 			Data:   randomString(),
 		}); err != nil {
-			handleCallError("Log", err)
+			handleCallError("PutLog", err)
 		} else {
 			log.Printf("funcId:%d %+v\n", res)
 		}

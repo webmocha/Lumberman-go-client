@@ -44,6 +44,8 @@ github.com/webmocha/lumberman v0.0.0-20190826211435-5440d943548b h1:egm0xf4sVcfC
 github.com/webmocha/lumberman v0.0.0-20190826211435-5440d943548b/go.mod h1:zM2ke683RSVO5IO5KsVo8pIGTMJhBMepbaRIfaqC4PQ=
 github.com/webmocha/lumberman v0.0.0-20190827160637-f73495bea2ff h1:d9PXuommeeF3KF1tXQDfzwVVyzqrdQxqS/RMuKI1MdI=
 github.com/webmocha/lumberman v0.0.0-20190827160637-f73495bea2ff/go.mod h1:zM2ke683RSVO5IO5KsVo8pIGTMJhBMepbaRIfaqC4PQ=
+github.com/webmocha/lumberman v0.0.0-20190827192434-f059d4115fc9 h1:Mnv/6kUb9DZGYWGgt+pr9XGGiSWPSro+arVhJOcryGQ=
+github.com/webmocha/lumberman v0.0.0-20190827192434-f059d4115fc9/go.mod h1:zM2ke683RSVO5IO5KsVo8pIGTMJhBMepbaRIfaqC4PQ=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

@@ -12,7 +12,7 @@ import (
 const help = `Usage
 
 Write to Log:
-		lmc log <Prefix> <Log Object>
+		lmc put-log <Prefix> <Log Data>
 
 Get Log by key:
 		lmc get-log <Key>
@@ -23,21 +23,27 @@ Get all Logs by prefix:
 Get all Logs as stream by prefix:
 		lmc get-logs-stream <Prefix>
 
-Stream Logs by prefix:
-		lmc stream-logs <Prefix>
+Tail Logs as stream by prefix:
+		lmc tail-logs-stream <Prefix>
 
 List Log by prefixes:
 		lmc list-prefixes
 
 List Log keys by prefix:
-		lmc list-logs <Prefix>
+		lmc list-keys <Prefix>
 
 Flood logs for prefix:
 		lmc log-flood <Prefix>
+
+Flood logs for prefix as stream:
+		lmc put-log-stream <Prefix>
+		default n: 1000
+		lmc -n 2500 put-log-stream <Prefix>
 `
 
 var (
 	serverAddr = flag.String("server_addr", "127.0.0.1:9090", "The server address in the format of host:port")
+	putStreamN = flag.Int("n", 1000, "number of logs to put (default: 1000)")
 )
 
 func main() {
@@ -71,20 +77,22 @@ func main() {
 			lmc.GetLogs(flag.Args()[1])
 		case "get-logs-stream":
 			lmc.GetLogsStream(flag.Args()[1])
-		case "stream-logs":
-			lmc.StreamLogs(flag.Args()[1])
-		case "list-logs":
-			lmc.ListLogs(flag.Args()[1])
+		case "tail-logs-stream":
+			lmc.TailLogStream(flag.Args()[1])
+		case "list-keys":
+			lmc.ListKeys(flag.Args()[1])
 		case "log-flood":
 			lmc.LogFlood(flag.Args()[1])
+		case "put-logs-stream":
+			lmc.PutLogStream(flag.Args()[1], *putStreamN)
 		default:
 			fmt.Println(help)
 		}
 
 	case 3:
 		switch flag.Args()[0] {
-		case "log":
-			lmc.Log(flag.Args()[1], flag.Args()[2])
+		case "put-log":
+			lmc.PutLog(flag.Args()[1], flag.Args()[2])
 		default:
 			fmt.Println(help)
 		}
