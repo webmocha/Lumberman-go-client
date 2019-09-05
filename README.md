@@ -8,26 +8,100 @@
   <strong><a href="https://github.com/webmocha/Lumberman">Lumberman</a> client reference implementation for go</strong>
 </p>
 
-## Requirements
+## Reference
 
-```sh
-go get
-```
+This repo contains runnable examples for connecting to [Lumberman](https://github.com/webmocha/Lumberman) grpc server and making calls to each function.
 
-## Lumberman LogService
+All of the examples are in [client.go](./client.go).
+
+## Lumberman Service Definition
 
 see [lumberman.proto](https://github.com/webmocha/Lumberman/blob/master/lumberman.proto)
 
-## Installation
+
+## Quick Guide
+
+### Create a grpc client
+
+```go
+conn, err := grpc.Dial(*serverAddr, grpc.WithInsecure())
+if err != nil {
+  log.Fatalf("fail to dial: %v", err)
+}
+defer conn.Close()
+client := pb.NewLoggerClient(conn)
+
+lmc := &lmClient{
+  client: client,
+}
+```
+
+### List keys for Prefix
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
+
+logsReply, err := lmc.ListKeys(ctx, &pb.PrefixRequest{
+  Prefix: prefix,
+})
+if err != nil {
+	if s, ok := status.FromError(err); !ok {
+		log.Fatal(status.Errorf(codes.Internal, "client.ListKeys <- server Unknown Internal Error('%s')", s.Message()))
+	} else {
+		log.Fatal(status.Errorf(s.Code(), "client.ListKeys<-server.Error('%s')", s.Message()))
+	}
+}
+
+log.Printf("%+v\n", logsReply)
+```
+
+### Get all logs from a stream
+
+```javascript
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+stream, err := l.client.GetLogsStream(ctx, &pb.PrefixRequest{
+  Prefix: prefix,
+})
+if err != nil {
+  if s, ok := status.FromError(err); !ok {
+    log.Fatal(status.Errorf(codes.Internal, "client.GetLogsStream <- server Unknown Internal Error('%s')", s.Message()))
+  } else {
+    log.Fatal(status.Errorf(s.Code(), "client.GetLogsStream<-server.Error('%s')", s.Message()))
+  }
+}
+
+for {
+  logReply, err := stream.Recv()
+  if err == io.EOF {
+    break
+  }
+  if err != nil {
+    if s, ok := status.FromError(err); !ok {
+      log.Fatal(status.Errorf(codes.Internal, "client.GetLogsStream.Recv <- server Unknown Internal Error('%s')", s.Message()))
+    } else {
+      log.Fatal(status.Errorf(s.Code(), "client.GetLogsStream.Recv<-server.Error('%s')", s.Message()))
+    }
+  }
+
+  log.Printf("%+v\n", logReply)
+}
+```
+
+## Usage
+
+### Installation
 
 ```sh
 go get -u github.com/webmocha/lumberman-go-client
 ln -s $GOPATH/bin/lumberman-go-client $GOPATH/bin/lmc
 ```
 
-## Usage
+### Options
 
-### Define server address
+Define server address
 
 _default is `127.0.0.1:9090`_
 
